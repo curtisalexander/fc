@@ -2,12 +2,17 @@
 Query the Full Contact RESTful [Person API](https://www.fullcontact.com/developer/docs/person)
 
 Able to accomplish by 
-* querying unique email addresses seen in last hour
-* compares the email addresses to those seen in the past
+* querying unique email addresses seen in last hour (from an internal database in order to populate a list of email addresses to query the Person API)
+* comparing the email addresses to those seen in the past
     * during the initial 'seeding' time period, gathering all email addresses
-    * after 'seeding' check to see if an email address has been queried in the last 10 days
-* queries the Full Contact Person API
-* saves the resulting JSON
+    * after 'seeding' checking to see if an email address has been queried in the last 10 days
+* querying the Full Contact Person API
+* saving the resulting JSON
+
+## Webhooks and Priority Queues
+In lieu of using [webhooks](https://www.fullcontact.com/developer/docs/webhooks/), continually submit email addresses and poll for success criteria.  This is necessary because the Full Contact API will return a status code of `202` which corresponds to  `Accepted, Your request is currently being processed. You can check again later to see the request has been processed.`  Thus, there is a need to check back with the API to see if the email address has finished processing.  Again, the most natural (and preferred) way is to use a webhook.
+
+Rather than use a webhook, create a [priority queue](https://docs.python.org/3/library/queue.html?highlight=queue#queue.PriorityQueue) to continually process emails.  All email addresses are added to the queue initially and sent to the Person API.  If a `202` is returned, then the email address is added back to the queue with a datetime of +30 seconds (the datetime is what sets the priority within the queue).  This is controlled by `RETRY_TIME` within `fc/__init__.py`.  The datetime associated with the next email to process on the queue is continually checked against the current time.  If the datetime associated with the next email is greater than the current time, then email address is re-sent to the Person API for consideration.  If a `200` (or any other HTTP error code) is received, then the returned JSON file is saved.  It is the combination of the priority queue with a datetime as the priority criteria and a separate process to continually check datetimes to see if processing can continue that gets around the lack of a webhook.
 
 ## API Key
 Full Contact API key is required.  Place the key in the following location.
