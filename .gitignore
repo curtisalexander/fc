@@ -1,0 +1,6 @@
+*.json
+*.pyc
+*.swp
+.cache/*
+data/*
+logs/*

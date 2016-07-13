@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# rsync options
+# 
+# a = archive mode; equals -rlptgoD (no -H,-A,-X)
+#   r = recursive
+#   l = copy symlinks as symlinks
+#   p = preserve permissions
+#   t = preserve modification times
+#   g = preserve group
+#   o = preserver owner
+#   D = same as --devices --specials
+#   H = preserve hard-links
+#   A = preserve ACLs
+#   X = preserve extended attributes
+# v = verbose
+# z = compress file data during transfer
+# h = human readable
+# progress = show progress during transfer
+# ignore-existing = skip updating files that exist on receiver
+
+# make sure drive is mounted
+if grep -qs '/mnt/network/dir' /proc/mounts; then
+
+    START_TIME=$(date +%s)
+    DEST_DIR_ROOT="/mnt/network/dir/JSON Files"
+    # trailing slash = all files within
+    # no trailing slash = fc dir + all files within
+    FC_DIR_ROOT="/work/JSON Files/"
+
+    echo "Starting sync of ${FC_DIR_ROOT}..."
+    rsync -avzh --progress "${FC_DIR_ROOT}" "${DEST_DIR_ROOT}"
+    
+    echo "...run time was $(expr $(date +%s) - ${START_TIME}) s\n"
+else
+
+    echo "The network drive is not mounted..."
+
+fi
