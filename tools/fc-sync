@@ -20,20 +20,24 @@
 # ignore-existing = skip updating files that exist on receiver
 
 # make sure drive is mounted
-if grep -qs '/mnt/network/dir' /proc/mounts; then
+grep -qs '/mnt/network/dir' /proc/mounts
 
-    START_TIME=$(date +%s)
+# http://tldp.org/LDP/abs/html/exit-status.html
+# $? ==> reads the exit status of the last command executed
+#   $? -eq 0 is success
+#   $? -ne 0 is failure
+
+if [ $? -eq 0 ]; then
+    START_TIME="$(date +%s)"
     DEST_DIR_ROOT="/mnt/network/dir/JSON Files"
     # trailing slash = all files within
     # no trailing slash = fc dir + all files within
     FC_DIR_ROOT="/work/JSON Files/"
 
-    echo "Starting sync of ${FC_DIR_ROOT}..."
+    echo -e "Starting sync of ${FC_DIR_ROOT}..."
     rsync -avzh --progress "${FC_DIR_ROOT}" "${DEST_DIR_ROOT}"
     
-    echo "...run time was $(expr $(date +%s) - ${START_TIME}) s\n"
+    echo -e "...run time was $(expr $(date +%s) - ${START_TIME}) s\n"
 else
-
-    echo "The network drive is not mounted..."
-
+    echo -e "The network drive is not mounted..."
 fi
